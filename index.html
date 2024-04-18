@@ -266,19 +266,8 @@
 		</div>
 	</div>
 	</div>
-	<div id="vk-layer" hidden>
-		<div class="vk-rectangle vk" data-k="menu" id="vk-menu">𝗠𝗲𝗻𝘂</div>
-		<div class="vk-trig vk" data-k="l">𝗟</div>
-		<div class="vk-trig vk" data-k="r">𝗥</div>
-		<div class="vk-round vk" data-k="a">𝗔</div>
-		<div class="vk-round vk" data-k="b">𝗕</div>
-		<div class="vk-round vk" data-k="x">𝗫</div>
-		<div class="vk-round vk" data-k="y">𝗬</div>
-		<div class="vk-square vk" data-k="select">-</div>
-		<div class="vk-square vk" data-k="start">+</div>
-                <div class="vk-round vk" data-k="stick" id="vk-stick"></div>
-		<div class="vk-rectangle vk" data-k="mic">𝗠𝗶𝗰</div>
-	</div>
+	<div id="vk-layer" hidden></div>
+
 	<div style="z-index: 2; position: absolute; bottom: 7px; right: 7px;" id="fps"></div>
 	<div id="msg-layer" hidden>
 		<p id="msg-text"></p>
@@ -324,8 +313,8 @@
 		<a style="margin-left: 7px;" href="#" id="a-gamepad">Gamepad Disconnected</a>
 	</div>
 	<div id="player" hidden>
-		<canvas id="top" width="128" height="96"></canvas>
-		<canvas id="bottom" width="128" height="96"></canvas>
+		<canvas id="top" width="256" height="192"></canvas>
+		<canvas id="bottom" width="256" height="192"></canvas>
 	</div>
 	<script src="localforage.js"></script>
 	<script src="pako.min.js"></script>
