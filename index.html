@@ -332,5 +332,11 @@
         bottomCanvas.width = 128;
         bottomCanvas.height = 96;
     </script>
+    // Hide the loading div once the page has fully loaded
+    window.addEventListener('load', function() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('loadrom').removeAttribute('hidden');
+    });
+    </script>
 </body>
 </html>
