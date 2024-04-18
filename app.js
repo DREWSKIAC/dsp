@@ -1,3 +1,4 @@
+User
 
 var uiCurrentMode = 'welcome'
 var plugins = {}
@@ -6,7 +7,7 @@ var html = document.getElementsByTagName("html")[0]
 var config = {
     swapTopBottom: false,
     swapTopBottomL: false,
-    powerSave: false,
+    powerSave: true,
     micWhenR: false,
     vkEnabled: false,
     cfgOpt: true,
@@ -162,10 +163,6 @@ var fps = 0
 var divFPS = $id('fps')
 var fileInput = $id('rom')
 var romSize = 0
-var desiredFPS = 25; // Set your desired FPS here
-var interval = 1000 / desiredFPS;
-var lastFrameTime = performance.now();
-
 
 var FB = [0, 0]
 var screenCanvas = [document.getElementById('top'), document.getElementById('bottom')]
@@ -555,18 +552,20 @@ function tryInitSound() {
 }
 
 var prevRunFrameTime = performance.now()
-function emuLoop(timestamp) {
-    var currentTime = performance.now();
-    var elapsedTime = currentTime - lastFrameTime;
+function emuLoop() {
+    window.requestAnimationFrame(emuLoop)
 
-    if (elapsedTime > interval) {
-        lastFrameTime = currentTime - (elapsedTime % interval);
-        emuRunFrame();
+    if (emuIsRunning) {
+        if (config.powerSave) {
+            if (performance.now() - prevRunFrameTime < 50) {
+                return
+            }
+        }
+        prevRunFrameTime = performance.now()
+        emuRunFrame()
     }
-
-    window.requestAnimationFrame(emuLoop);
 }
-window.requestAnimationFrame(emuLoop); // Start the rendering loop
+emuLoop()
 
 var stickTouchID = null
 var tpadTouchID = null
