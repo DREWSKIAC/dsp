@@ -158,7 +158,7 @@ const emuKeyboradMapping = [39, 37, 40, 38, 9, 13, 32, 16, 17, 83, 81, 69, -1, 8
 var emuGameID = 'unknown'
 var emuIsRunning = false
 var emuIsGameLoaded = false
-var fps = 25
+var fps = 0
 var divFPS = $id('fps')
 var fileInput = $id('rom')
 var romSize = 0
@@ -233,13 +233,13 @@ function emuRunFrame() {
     }
 
     frameCount += 1
-    if (frameCount % 120 == 0) {
+    if (frameCount % 25 == 0) {
         var time = performance.now()
-        fps = 120 / ((time - prevCalcFPSTime) / 1000)
+        fps = 25
         prevCalcFPSTime = time
         divFPS.innerText = 'FPS:' + ('' + fps).substring(0, 5)
     }
-    if (frameCount % 30 == 0) {
+    if (frameCount % 25 == 0) {
         checkSaveGame()
     }
 }
