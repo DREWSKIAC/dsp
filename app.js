@@ -6,9 +6,9 @@ var html = document.getElementsByTagName("html")[0]
 var config = {
     swapTopBottom: false,
     swapTopBottomL: false,
-    powerSave: true,
-    micWhenR: true,
-    vkEnabled: true,
+    powerSave: false,
+    micWhenR: false,
+    vkEnabled: false,
     cfgOpt: true,
 }
 
@@ -154,7 +154,7 @@ for (var i = 0; i < emuKeyNames.length; i++) {
 }
 var isLandscape = false
 
-const emuKeyboradMapping = [39, 37, 40, 38, 16, 13, 90, 88, 65, 83, 81, 87, -1, 8]
+const emuKeyboradMapping = [39, 37, 40, 38, 16, 13, 32, 16, 17, 83, 81, 69, -1, 8]
 var emuGameID = 'unknown'
 var emuIsRunning = false
 var emuIsGameLoaded = false
