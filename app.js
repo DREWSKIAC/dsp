@@ -164,7 +164,7 @@ var fileInput = $id('rom')
 var romSize = 0
 var desiredFPS = 25; // Set your desired FPS here
 var interval = 1000 / desiredFPS;
-var lastFrameTime = 0;
+var lastFrameTime = performance.now();
 
 
 var FB = [0, 0]
@@ -566,7 +566,7 @@ function emuLoop(timestamp) {
 
     window.requestAnimationFrame(emuLoop);
 }
-emuLoop()
+window.requestAnimationFrame(emuLoop); // Start the rendering loop
 
 var stickTouchID = null
 var tpadTouchID = null
