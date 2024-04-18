@@ -6,9 +6,10 @@ var html = document.getElementsByTagName("html")[0]
 var config = {
     swapTopBottom: false,
     swapTopBottomL: false,
-    powerSave: true,
-    micWhenR: true,
-    vkEnabled: true,
+    powerSave: false,
+    micWhenR: false,
+    vkEnabled: false,
+    cfgOpt: true,
 }
 
 function loadConfig() {
@@ -18,13 +19,39 @@ function loadConfig() {
     }
     $id('power-save').checked = config.powerSave
     $id('vk-enabled').checked = config.vkEnabled
+    $id('cfg-opt').checked = config.cfgOpt
 }
 loadConfig()
 
 function uiSaveConfig() {
     config.powerSave = !!($id('power-save').checked)
     config.vkEnabled = !!($id('vk-enabled').checked)
+    config.cfgOpt = !!($id('cfg-opt').checked)
     window.localStorage['config'] = JSON.stringify(config)
+}
+
+$id('back-menu').onclick = function () {
+    if ($id('cfg-opt').checked) {
+        if (safariVer) {
+            if (!((safariVer[0] >= 16 && safariVer[1] >= 4) || (safariVer[0] >= 17))) {
+                alert('iOS 16.4+ is required to enable this option.')
+                $id('cfg-opt').checked = false
+                return
+            }
+        } else if (chromeVer) {
+            if (chromeVer[0] < 92) {
+                alert('Chrome 92+ is required to enable this option.')
+                $id('cfg-opt').checked = false
+                return
+            }
+        } else {
+            alert("We don't know if your browser is supported. Please try it and disable this option if it doesn't work.")
+        }
+        localStorage['simd'] = '1'
+    } else {
+        localStorage['simd'] = '0'
+    }
+    alert('Please restart the app to apply the change.')
 }
 
 
@@ -69,6 +96,16 @@ async function uiSaveRestore() {
     })
 }
 
+if (!(window.WebAssembly)) {
+    if (isIOS && isWebApp) {
+        alert(`You have lockdown mode enabled, which disables WebAssembly and prevents the app from running. 
+               Please go back to Safari, click double A button in the address bar, open "Website Settings", and disable "Lockdown Mode" for this website.`)
+    } else {
+        alert(`WebAssembly is not supported or disabled in your browser.
+               Please check the settings of your browser and enable WebAssembly.`)
+    }
+}
+
 
 
 function $id(id) {
@@ -79,7 +116,7 @@ var isIOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
 var isMacOS = !!navigator.platform && /Mac/.test(navigator.platform);
 if (isMacOS) {
     if (navigator.maxTouchPoints > 2) {
-        // Nah, it is an iPad pretending to be a Mac
+        // iPad showing desktop site, not actual mac
         isIOS = true
         isMacOS = false
     }
@@ -96,6 +133,7 @@ if (isIOS) {
         var divIosHint = $id('ios-hint')
         divIosHint.hidden = false
         divIosHint.style = 'position: absolute; bottom: ' + divIosHint.clientHeight + 'px;'
+        alert('Important! You must save this page as a web clip in order to save your game progress. Press the share icon, then add this site to your home screen.')
     }
 }
 if (isMacOS) {
@@ -105,8 +143,8 @@ if (isMacOS) {
     }
 }
 
-var emuKeyState = new Array(14)
-const emuKeyNames = ["right", "left", "down", "up", "select", "start", "b", "a", "y", "x", "l", "r", "debug", "lid"]
+var emuKeyState = new Array(15)
+const emuKeyNames = ["right", "left", "down", "up", "select", "start", "b", "a", "y", "x", "l", "r", "debug", "lid", "mic"]
 var vkMap = {}
 var vkState = {}
 var keyNameToKeyId = {}
@@ -116,7 +154,7 @@ for (var i = 0; i < emuKeyNames.length; i++) {
 }
 var isLandscape = false
 
-const emuKeyboradMapping = [39, 37, 40, 38, 16, 13, 90, 88, 65, 83, 81, 87, -1, 8]
+const emuKeyboradMapping = [39, 37, 40, 38, 16, 13, 32, 16, 17, 83, 81, 69, -1, 8]
 var emuGameID = 'unknown'
 var emuIsRunning = false
 var emuIsGameLoaded = false
@@ -168,9 +206,9 @@ function emuRunFrame() {
             keyMask |= 1 << i
         }
     }
-    var mic = emuKeyState[11]
+    var mic = emuKeyState[14]
     if (mic) {
-        console.log('mic')
+        console.log('Microphone utilized')
         keyMask |= 1 << 14
     }
 
@@ -179,18 +217,18 @@ function emuRunFrame() {
         Module._runFrame(0, keyMask, touched, touchX, touchY)
     }
     Module._runFrame(1, keyMask, touched, touchX, touchY)
-    
+
     ctx2d[0].putImageData(FB[0], 0, 0)
     ctx2d[1].putImageData(FB[1], 0, 0)
-    gpuDraw(screenCanvas[0],FB[0])
-    gpuDraw(screenCanvas[1],FB[1])
     if (audioWorkletNode) {
         try {
-            var samplesRead = Module._fillAudioBuffer(4096);
-            tmpAudioBuffer.set(audioBuffer.subarray(0, samplesRead * 2));
-            audioWorkletNode.port.postMessage(tmpAudioBuffer.subarray(0, samplesRead * 2));
+            var samplesRead = Module._fillAudioBuffer(4096)
+            tmpAudioBuffer.set(audioBuffer.subarray(0, samplesRead * 2))
+            audioWorkletNode.port.postMessage(tmpAudioBuffer.subarray(0, samplesRead * 2))
         } catch (error) {
-            console.log(error);
+            // tmpAudioBuffer may be detached if previous message is still processing 
+            console.log(error)
+            showMsg(error)
         }
     }
 
@@ -199,7 +237,7 @@ function emuRunFrame() {
         var time = performance.now()
         fps = 120 / ((time - prevCalcFPSTime) / 1000)
         prevCalcFPSTime = time
-        divFPS.innerText = 'fps:' + ('' + fps).substring(0, 5)
+        divFPS.innerText = 'FPS:' + ('' + fps).substring(0, 5)
     }
     if (frameCount % 30 == 0) {
         checkSaveGame()
@@ -318,7 +356,7 @@ function emuStart() {
     if (!emuIsGameLoaded) {
         return
     }
-    console.log('Start!!!')
+    console.log('Starting emulation!')
     emuIsRunning = true
     uiSwitchTo('player')
 }
@@ -355,12 +393,10 @@ function uiAdjustVKLayout() {
     vkh = baseSize * 0.6
     fontSize = baseSize * 0.5
     vkMap['l'].style = makeVKStyle(offTop, 0, vkw * 0.775, vkh * 0.775, fontSize * 0.775)
-    vkMap['r'].style = makeVKStyle(offTop, window.innerWidth - vkw * 0.775, vkw * 0.775, vkh * 0.775, fontSize * 0.775,)
-    $id('vk-menu').style = makeVKStyle(window.innerHeight - (vkh * 0.675) - 16.25, window.innerwidth * 0.5, vkw, vkh, fontSize);
-    $id('vk-menu').style.position = 'fixed';
-    $id('vk-menu').style.transform = 'scale(0.66)';
-    $id('vk-menu').style.left = '50%';
-    $id('vk-menu').style.transform += 'translateX(-76.5%)';
+    vkMap['r'].style = makeVKStyle(offTop, window.innerWidth - vkw * 0.775, vkw * 0.775, vkh * 0.775, fontSize * 0.775)
+    vkMap['mic'].style = makeVKStyle(window.innerHeight - (vkh * 0.675), window.innerwidth * 0.5, vkw * 0.675, vkh * 0.675, fontSize * 0.675,)
+    $id('vk-menu').style = makeVKStyle(window.innerHeight - (vkh * 1.425), window.innerwidth * 0.5, vkw * 0.675, vkh * 0.675, fontSize * 0.675)
+    $id('vk-menu').style.left = '0px';
 
     
     offTop += baseSize * 0.62
@@ -382,8 +418,9 @@ function uiAdjustVKLayout() {
     vkw = baseSize * 0.4
     vkh = baseSize * 0.4
     fontSize = baseSize * 0.4
-    vkMap['select'].style = makeVKStyle(offTop + abxyHeight - vkh, window.innerWidth / 2 - vkw * 2.35, vkw, vkh, fontSize);
-    vkMap['start'].style = makeVKStyle(offTop + abxyHeight - vkh, window.innerWidth / 2 + vkw * 1.35, vkw, vkh, fontSize);
+    vkMap['select'].style = makeVKStyle(offTop + abxyHeight - vkh, window.innerWidth / 2 - vkw * 2.35 - 13.25 * window.innerHeight / 100, vkw, vkh, fontSize);
+    vkMap['start'].style = makeVKStyle(offTop + abxyHeight - vkh, window.innerWidth / 2 + vkw * 1.35 + 13.25 * window.innerHeight / 100, vkw, vkh, fontSize);
+
 }
 
 function uiUpdateLayout() {
@@ -433,8 +470,8 @@ function uiSwitchTo(mode) {
     emuIsRunning = false
 
     if (mode == 'player') {
-        body.style = 'touch-action: none;'
-        html.style = 'position: fixed;overflow:hidden;touch-action: none;'
+        body.style = 'background: black; background-color: black; touch-action: none;'
+        html.style = 'background: black; background-color: black; position: fixed;overflow:hidden;touch-action: none;'
         for (var i = 0; i < 14; i++) {
             emuKeyState[i] = false
         }
@@ -478,7 +515,7 @@ fileInput.onchange = async () => {
         alert('This is a GBA file, redirecting to the GBA player...')
         window.location.href = '/gba';
     } else if (fileNameLower.endsWith('.zip')) {
-        alert('ZIP file not supported yet! You must uncompress it first!')
+        alert('ZIP file not supported yet!')
     } else if (fileNameLower.endsWith('.nds')) {
         tryLoadROM(file)
         return
@@ -510,7 +547,7 @@ function tryInitSound() {
         audioContext.resume()
     } catch (e) {
         console.log(e)
-        //alert('Cannnot init sound ')
+        alert('Error: Unable to initilize sound.')
     }
 }
 
@@ -618,7 +655,7 @@ function handleTouch(event) {
             needUpdateStick = true
             nextStickTouchID = tid
             continue
-        } 
+        }
         if ((tid === tpadTouchID) || (isPointInRect(t.clientX, t.clientY, tsRect) && (!k))) {
             isDown = true
             x = clamp01((t.clientX - tsRect.x) / tsRect.width) * 256
@@ -750,31 +787,6 @@ window.addEventListener("gamepadconnected", function (e) {
     showMsg('Gamepad connected.')
     currentConnectedGamepad = e.gamepad.index
     $id('a-gamepad').innerText = 'Gamepad connected'
-
-    var menuOpen = false;
-    var lastTriggerTime = 0;
-    var triggerCooldown = 500; // Half a second in milliseconds
-
-    function checkGamepadState() {
-        var currentTime = Date.now();
-        if (currentTime - lastTriggerTime >= triggerCooldown) {
-            var gamepad = navigator.getGamepads()[currentConnectedGamepad];
-            if (gamepad) {
-                if (!menuOpen && (gamepad.buttons[6].pressed || gamepad.buttons[7].pressed || (gamepad.buttons[2].pressed && gamepad.buttons[4].pressed && gamepad.buttons[5].pressed))) {
-                    uiSwitchTo('menu');
-                    menuOpen = true;
-                    lastTriggerTime = currentTime;
-                } else if (menuOpen && (gamepad.buttons[6].pressed || gamepad.buttons[7].pressed || (gamepad.buttons[2].pressed && gamepad.buttons[4].pressed && gamepad.buttons[5].pressed))) {
-                    uiMenuBack();
-                    menuOpen = false;
-                    lastTriggerTime = currentTime;
-                }
-            }
-        }
-        requestAnimationFrame(checkGamepadState);
-    }
-
-    checkGamepadState();
 });
 
 function processGamepadInput() {
@@ -811,10 +823,8 @@ function processGamepadInput() {
 
 function whatsNew() {
     alert(`
-1. Improved virtual keyboard placement and size.
-2. Added gamepad menu button mapping (left trigger, right trigger, left shoulder + right shoulder + left face button [x or y, depending on controller]).
-3. Improved UI and added ROM downloads.
-4. Added new screen layouts.
+1. Introduced beta fullscreen mode (gamepad needed)
+2. Improved menu and message visuals
 `)
 }
 
@@ -845,7 +855,7 @@ function enableMicrophone() {
                 var buf = e.inputBuffer.getChannelData(0) // 48000Hz mono float
                 // Convert to 16000Hz 7bit mono PCM
                 var dstPtr = 0;
-                for (var i = 0; i <= 2045; i += 3) {
+                for (var i = 0; i <= 2045; i+=3) {
                     var val = Math.floor(((buf[i] + buf[i + 1] + buf[i + 2]) / 3 + 1) * 64)
                     if (val > 127) {
                         val = 127
@@ -864,6 +874,6 @@ function enableMicrophone() {
                 }
             }
             scriptNode.connect(audioCtx.destination);
-
+           
         });
 }
