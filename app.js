@@ -6,7 +6,7 @@ var html = document.getElementsByTagName("html")[0]
 var config = {
     swapTopBottom: false,
     swapTopBottomL: false,
-    powerSave: true,
+    powerSave: false,
     micWhenR: false,
     vkEnabled: false,
     cfgOpt: true,
@@ -162,6 +162,9 @@ var fps = 0
 var divFPS = $id('fps')
 var fileInput = $id('rom')
 var romSize = 0
+var desiredFPS = 25; // Set your desired FPS here
+var prevRunFrameTime = performance.now();
+
 
 var FB = [0, 0]
 var screenCanvas = [document.getElementById('top'), document.getElementById('bottom')]
@@ -552,16 +555,17 @@ function tryInitSound() {
 
 var prevRunFrameTime = performance.now()
 function emuLoop() {
-    window.requestAnimationFrame(emuLoop)
+    window.requestAnimationFrame(emuLoop);
 
     if (emuIsRunning) {
-        if (config.powerSave) {
-            if (performance.now() - prevRunFrameTime < 25) {
-                return
-            }
+        var currentTime = performance.now();
+        var elapsedTime = currentTime - prevRunFrameTime;
+        var minInterval = 1000 / desiredFPS;
+
+        if (elapsedTime >= minInterval) {
+            prevRunFrameTime = currentTime - (elapsedTime % minInterval);
+            emuRunFrame();
         }
-        prevRunFrameTime = performance.now()
-        emuRunFrame()
     }
 }
 emuLoop()
