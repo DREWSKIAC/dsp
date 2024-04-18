@@ -6,7 +6,7 @@ var html = document.getElementsByTagName("html")[0]
 var config = {
     swapTopBottom: false,
     swapTopBottomL: false,
-    powerSave: false,
+    powerSave: true,
     micWhenR: false,
     vkEnabled: false,
     cfgOpt: true,
@@ -233,17 +233,16 @@ function emuRunFrame() {
     }
 
     frameCount += 1
-    if (frameCount % 1 == 0) {
+    if (frameCount % 120 == 0) {
         var time = performance.now()
-        fps = 1
+        fps = 120 / ((time - prevCalcFPSTime) / 1000)
         prevCalcFPSTime = time
         divFPS.innerText = 'FPS:' + ('' + fps).substring(0, 5)
     }
-    if (frameCount % 25 == 0) {
+    if (frameCount % 30 == 0) {
         checkSaveGame()
     }
 }
-
 
 function wasmReady() {
     Module._setSampleRate(47860)
@@ -557,7 +556,7 @@ function emuLoop() {
 
     if (emuIsRunning) {
         if (config.powerSave) {
-            if (performance.now() - prevRunFrameTime < 32) {
+            if (performance.now() - prevRunFrameTime < 25) {
                 return
             }
         }
