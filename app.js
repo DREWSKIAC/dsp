@@ -163,7 +163,8 @@ var divFPS = $id('fps')
 var fileInput = $id('rom')
 var romSize = 0
 var desiredFPS = 25; // Set your desired FPS here
-var prevRunFrameTime = performance.now();
+var interval = 1000 / desiredFPS;
+var lastFrameTime = 0;
 
 
 var FB = [0, 0]
@@ -554,19 +555,16 @@ function tryInitSound() {
 }
 
 var prevRunFrameTime = performance.now()
-function emuLoop() {
-    window.requestAnimationFrame(emuLoop);
+function emuLoop(timestamp) {
+    var currentTime = performance.now();
+    var elapsedTime = currentTime - lastFrameTime;
 
-    if (emuIsRunning) {
-        var currentTime = performance.now();
-        var elapsedTime = currentTime - prevRunFrameTime;
-        var minInterval = 1000 / desiredFPS;
-
-        if (elapsedTime >= minInterval) {
-            prevRunFrameTime = currentTime - (elapsedTime % minInterval);
-            emuRunFrame();
-        }
+    if (elapsedTime > interval) {
+        lastFrameTime = currentTime - (elapsedTime % interval);
+        emuRunFrame();
     }
+
+    window.requestAnimationFrame(emuLoop);
 }
 emuLoop()
 
