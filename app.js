@@ -153,7 +153,7 @@ for (var i = 0; i < emuKeyNames.length; i++) {
 }
 var isLandscape = false
 
-const emuKeyboradMapping = [39, 37, 40, 38, 9, 13, 32, 16, 17, 83, 81, 69, -1, 8]
+const emuKeyboradMapping = [39, 37, 40, 38, 9, 13, 32, 17, 16, 83, 81, 69, -1, 8]
 var emuGameID = 'unknown'
 var emuIsRunning = false
 var emuIsGameLoaded = false
@@ -555,7 +555,7 @@ function emuLoop() {
 
     if (emuIsRunning) {
         if (config.powerSave) {
-            if (performance.now() - prevRunFrameTime < 33) {
+            if (performance.now() - prevRunFrameTime < 34) {
                 return
             }
         }
