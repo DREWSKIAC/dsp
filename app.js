@@ -233,9 +233,9 @@ function emuRunFrame() {
     }
 
     frameCount += 1
-    if (frameCount % 25 == 0) {
+    if (frameCount % 1 == 0) {
         var time = performance.now()
-        fps = 25
+        fps = 1
         prevCalcFPSTime = time
         divFPS.innerText = 'FPS:' + ('' + fps).substring(0, 5)
     }
