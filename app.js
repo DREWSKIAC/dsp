@@ -1,5 +1,3 @@
-User
-
 var uiCurrentMode = 'welcome'
 var plugins = {}
 var body = document.getElementsByTagName("body")[0]
@@ -557,7 +555,7 @@ function emuLoop() {
 
     if (emuIsRunning) {
         if (config.powerSave) {
-            if (performance.now() - prevRunFrameTime < 50) {
+            if (performance.now() - prevRunFrameTime < 25) {
                 return
             }
         }
