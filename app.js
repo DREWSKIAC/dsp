@@ -555,7 +555,7 @@ function emuLoop() {
 
     if (emuIsRunning) {
         if (config.powerSave) {
-            if (performance.now() - prevRunFrameTime < 34) {
+            if (performance.now() - prevRunFrameTime < 33) {
                 return
             }
         }
